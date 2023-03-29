@@ -129,4 +129,219 @@ Filtering functions can also be combined with logical operators. This is often d
 - ````&```` is "and",
 - ````|```` is "or",
 - ````!```` is "not"  
-![image of boolean operators](boolean_operator.png)
+
+For example, we might want to 
+```{r}
+human_F2 = starwars %>% filter(species == "Human" & sex == "female")
+```
+This can also be written in this (maybe) simpler way:
+```{r}
+human_F = starwars %>% filter(species == "Human", sex == "female")
+```
+Or maybe we want humans and droids (i.e. humans OR droids)
+```{r}
+hum_dro = starwars %>% filter(species == "Human" | species == "Droid")
+```
+If you have many levels of a variable (say you want 4 specific species) that you want to include in your new data set it can be easier to use this:
+```{r}
+species_of_interest = c("Human", "Droid", "Wookiee", "Rodian")
+starwars_sub = starwars %>% filter(species %in% species_of_interest)
+```
+I find it neater to use a separate line for the creating of the character vector so that I can go back and edit it separately if I change my mind on the species of interest. Nevertheless, the character vector can of course also be defined within the filter function to limit the number of lines. Like this:
+```{r}
+starwars_sub = starwars %>% filter(species %in% c("Human", "Droid", "Wookiee", "Rodian"))
+```
+Feel free to inspect each newly created dataset as needed/wanted to make sure everything looks OK.    
+&nbsp; 
+I find the filter function useful when I for example might want to get rid of or find NA values. **NOTE** that the Boolean operators will not work with ````NA````, i.e. ```` = NA```` or ````! NA````. Instead use````is.na(x)```` or ````!is.na(x)````.  
+```{r}
+human_woNA = starwars %>% filter(species=="Human" & !is.na(mass) & !is.na(height))
+human_woNA
+```
+
+### A convenient function to get rid of NA observations is using the ````drop_na()```` function. You can use this on specific columns or the whole dataset and it will return only observations that do not include NA values. ¨
+```{r}
+starwars %>% filter(species == "Human") %>% drop_na(c(mass, height)) # same as above
+starwars %>% drop_na() # drops all observations with NA values
+```
+
+&nbsp; 
+
+## Arrange
+The arrange function arranges the row acording to the selected column. If you have mutiple columns the next specified column will break ties. 
+```{r arrange rows}
+human_woNA %>% arrange(height, mass) %>% head()
+```
+Ascending order is default, use ````desc()```` to re-order in descending order:
+```{r}
+human_woNA %>% arrange(desc(height), desc(mass)) %>% head()
+```
+Na values are listed at the end. 
+
+&nbsp; 
+
+## Select
+Usually we have more variables in our datasheets than we might want. To reduce and zoom into the variables of interest it might help to decrease the dataset. This can be done by using the *select()* function. 
+```{r}
+# select by name
+human_woNA %>% select(name, height, mass) %>% head()
+
+# select all columns between two:
+human_woNA %>% select(name:mass) %>% head()
+
+# select all except hair_color to starships
+height_mass = human_woNA %>% select(-(hair_color:starships)) 
+height_mass %>% head()
+```
+There are a bunch of function that can help the selection process. Here are a couple of examples:
+Column names that:
+
+* Starts with "of" ````starts_with("lat")````
+* Ends with "log" ````ends_with("log")````
+* Contains "vole" ````contains("vole")````
+* Matches a regular expression ````matches("(.)\\1")````. This one matches any variables that contain repeated characters. 
+* matches x1, x2 and x3 ````num_range("x", 1:3)```` 
+
+You can always get more details on all of these functions by using the ````?```` before a function. To get more detailed info on the select package you would run ````?select()````. 
+
+## Renaming column names and variable levels
+### Rename
+You would use the ````rename()```` function to rename column names. Note that the old name is after the equal sign. 
+```{r rename column names}
+height_mass %>% rename(mass_kg = mass) %>% head()
+```
+
+### Recode
+If you on the other had want to rename the levels (factor or other), you would use ````recode()```` or ````recode_factor()````.
+```{r recode}
+recode(starwars$eye_color, blue = "skyblue") %>% head()
+```
+
+&nbsp;
+## Mutate
+If we want to create a new column based on data from an already existing or multiple already existing columns we can use the ````mutate()```` function. There are many things you might want to mutate. Maybe we want to calculate the body mass index. 
+```{r}
+height_mass = height_mass %>% mutate(bmi = height/mass)
+```
+If you only want to keep the new variable you use the ````transmute()```` funciton. 
+
+```{r}
+height_mass %>% transmute(bmi = height/mass) %>% head()
+```
+### Useful funcitons:
+There are so many potential funcitons one could use that I wouldn't even try listing all, but here are a few that might be useful:
+
+* Arithmetic operations: ````+````, ````-````, ````/````, ````*````, ````^````
+  These operators could be useful in combination with aggregate functinos such as: ````x/sum(x)```` to calculate proportion of total, or ````y-mean(y)```` to calculate the difference from the mean.
+* Modular arithmetic: ````%/%```` (integer division) and ````%%```` (remainder), where ````x == y * (x %/% y) + (x %% y)````. This allows you to break up integers into pieces, for example height into meters and centimeters:
+```{r}
+height_mass %>% transmute(height, 
+                          meters = height %/% 100,
+                          centimeters = height %% 100) %>% head()
+```
+
+* Transformations such as: ````log()````,````log10()````, ````sqrt````, ````cube()````
+* Logical comparisons: ````<````, ````==````, etc.
+* Ranking using: ````min_rank()````, ````row_number()````, ````dense_rank()````, ````percent_rank()````, ````cume_rank()````, ````ntile()````. 
+
+&nbsp;
+
+## Summarise  
+This might not be the most important in a data manipulation workshop. But for exploring your data and making some descriptive statistics and summaries, using the ````summarise()```` function becomes really useful. 
+```{r}
+height_mass %>% summarise(mean_height = mean(height, na.rm = T)) # the na.rm = T removes NA's from your calculation of the mean, otherwise you will only get an NA
+starwars %>% summarise(mean_height = mean(height)) # I'm using the entire starwars dataset because I removed NA's already from the hight_mass dataset. 
+```
+### Group_by
+The ````summarise()```` function works very neatly together with the ````group_by()```` function, this lets you summarize by group. You can use ````group_by()```` in many of the other functions we talked about already as well.
+Say for example that we want to calculate the mean mass per species:
+```{r}
+starwars %>% group_by(species) %>% summarise(mean_mass = mean(mass, rm.na=T)) %>% head()
+```
+Or by species and site they come from:
+```{r}
+starwars %>% group_by(species, homeworld) %>% summarise(mean_mass = mean(mass, rm.na=T)) %>% head()
+```
+A funciton I usually find helpful to inspect and explore my data is to combine the ````summarise()````, ````group_by()````, and ````n()```` functions. By using these you can quickly count for example number of females and males per site. Or how many times an individual has been trapped. The list goes on.
+```{r}
+starwars %>% 
+  group_by(species) %>% 
+  summarise(count = n(),
+            mean_mass = mean(mass, na.rm = T)) %>% 
+  filter(count > 2 & mean_mass > 50)
+```
+You can of course run each of these functions (````group_by()````, ````summarise()````, ````filter()````) separately. But piping them together just makes it neater and removes steps where you might have to create new data frames etc...
+
+You can also use other summarizing function like ````summarise_all()```` (summarises all varaiables with the defined function), ````summarise_each()````, and ````summarise_at()````. These seem to however have been superseded by ````across()```` which allows for a transformation to be applied to multiple columns and is used within functions like ````summarise()```` and ````mutate()````.
+
+Sometimes it can be a nice idea to include a count (````n()````) or a count of non-missing data (````sum(!is.na(x))````) to check if you are making conclusions on very few data points. *we actually already did that in the chunk above but here is an example...*
+```{r}
+starwars %>% group_by(species) %>% summarise(mean_mass = mean(mass, na.rm = T),
+                                               n = sum(!is.na(mass)))
+```
+
+### Useful summarising function:
+
+* Measures of location: ````mean()````, ````median()````
+* Measures of spread: ````sd(x)```` (standard deviation), ````IQR(x)```` (interquartile range), ````mad(x)```` (median absolute deviation). 
+* Measures of rank: ````min(x)````, ````max(x)````, ````quantile(x, 0.25)````
+* Measures of position: ````first()````, ````last()````, ````nth(x, 2)````,
+* Counts: ````n()```` returns the size of the group, ````sum(!is.na(x))```` returns the numer of non-missing values and to count number of distinct (unique) values you can use ````n_distinct(x)```` (this is the same as writing ````length(unique(x))````, 
+```{r}
+starwars %>% 
+  group_by(species) %>% 
+  summarise(pop_size = n_distinct(name)) %>% 
+  arrange(desc(pop_size)) %>% 
+  head() # to get the end you can of course write tail()
+```
+
+* Counts and proportion sof logical values: ````sum(x > 10)````, ````mean(y == 0)````
+&nbsp;
+There are so many ways that you can explore and manipulate you data by combining these functions in different way. This is just a quick glimps into what one can do and if you want to do more or if there are other specific things you need we can look at that together but there are also so many resurces online to find (*see list of resources at the end*)
+
+&nbsp;
+
+## Wide to long format  
+Now something we often run into is the structure of the data. Often times we might have a data in a wide format and want to change it to a long format or the opposit. Tidyverse has the two function ````pivot_longer()```` and ````pivot_wider()````. *I don't think the starwars package is very well suited to explore this so we will create a quick eample instead*. These would be used like this:
+```{r}
+ind = c(rep("A", 3), rep("B", 2), rep("C", 3))
+test_occasion = c("1", "2", "3", "1", "2", "1", "2", "3")
+value = c(5, 4, 3, 8, 6, 7, 2, 1)
+df = tibble(ind, test_occasion, value)
+```
+Now this is in a long format which is acutally usually how we want the data be be structured for most of our analysis we do. But we will convert it to wide and then back to long format so that you know how to do both.
+```{r reshape wide}
+df = df %>% pivot_wider(names_from = test_occasion, values_from = value)
+df
+```
+```{r reshape long}
+df = df %>% pivot_longer(cols = c(`1`, `2`, `3`),
+                    names_to = 'test_occasion',
+                    values_to = 'values')
+df
+```
+Of course if you have more variables this can get a bit messier. Check out the help ````?pivot_longer()```` for more help. *we can go through more example of this if that's something you wish to do*. 
+
+&nbsp;
+
+## Joining datasets  
+A quick and last thign that I think is important for us to do is to merge different data sets. This is something we often do and where we have a common variable in both data sets that makes it possible to merge (e.g. vole ID). For this the different types of ````join()```` functions are excellent. *These are an alternative to base R ````merge()```` function. 
+
+* ````inner_join()```` (A & B) = keeps observations from ````x```` that have a matching key in ````y````.
+* ````left_join()```` (A) = keeps all observations in ````x````.
+* ````right_join()```` (B) = keeps all observations in ````y````.
+* ````full_join()```` (A|B) =  keeps all observations in both ````x```` and ````y````.
+We can use this to merge the new data frame we created with the human BMI values into the original starwars data frame.
+```{r}
+starwars = starwars %>% left_join(height_mass, by = c("name", "height", "mass"))
+```
+In this case we don't have to specify the key because R can tell which variables are the same in both documents and should determine how the data frames are to be combined. If however you have multiple keys or variables that have the same name but are not showing the same information you should specify the key by using the ````by = x```` as seen in the code above. 
+
+That's it for now. There are probably a million more things we could do but I think this is probably a nice start and a good foundation to base your data manipulations on. Again, if you ever have any quiestions about these function or the details of them, use the R help ````?```` function. And google google google! :D EIther way here are a few pages of resources that have great info and advice on how to work with tidyverse and manipulate your data:    
+
+## List of a few resources 
+[tidyverse package](https://tidyverse.tidyverse.org/)  
+The grammar of tidyverse: [dplyr](https://dplyr.tidyverse.org/)  
+Learn tidyverse better: [R for Data Science](https://r4ds.had.co.nz/index.html)  
+[R data wrangling cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
+
