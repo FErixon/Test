@@ -558,10 +558,489 @@ are wanted. The Boolean operators used are:</p>
 <ul>
 <li><code>&amp;</code> is “and”,</li>
 <li><code>|</code> is “or”,</li>
-<li><code>!</code> is “not”<br />
-<img src="boolean_operator.png" alt="image of boolean operators" /></li>
+<li><code>!</code> is “not”</li>
 </ul>
+<p>For example, we might want to</p>
+<pre class="r"><code>human_F2 = starwars %&gt;% filter(species == &quot;Human&quot; &amp; sex == &quot;female&quot;)</code></pre>
+<p>This can also be written in this (maybe) simpler way:</p>
+<pre class="r"><code>human_F = starwars %&gt;% filter(species == &quot;Human&quot;, sex == &quot;female&quot;)</code></pre>
+<p>Or maybe we want humans and droids (i.e. humans OR droids)</p>
+<pre class="r"><code>hum_dro = starwars %&gt;% filter(species == &quot;Human&quot; | species == &quot;Droid&quot;)</code></pre>
+<p>If you have many levels of a variable (say you want 4 specific
+species) that you want to include in your new data set it can be easier
+to use this:</p>
+<pre class="r"><code>species_of_interest = c(&quot;Human&quot;, &quot;Droid&quot;, &quot;Wookiee&quot;, &quot;Rodian&quot;)
+starwars_sub = starwars %&gt;% filter(species %in% species_of_interest)</code></pre>
+<p>I find it neater to use a separate line for the creating of the
+character vector so that I can go back and edit it separately if I
+change my mind on the species of interest. Nevertheless, the character
+vector can of course also be defined within the filter function to limit
+the number of lines. Like this:</p>
+<pre class="r"><code>starwars_sub = starwars %&gt;% filter(species %in% c(&quot;Human&quot;, &quot;Droid&quot;, &quot;Wookiee&quot;, &quot;Rodian&quot;))</code></pre>
+<p>Feel free to inspect each newly created dataset as needed/wanted to
+make sure everything looks OK.<br />
+  I find the filter function useful when I for example might want to get
+rid of or find NA values. <strong>NOTE</strong> that the Boolean
+operators will not work with <code>NA</code>, i.e. <code>= NA</code> or
+<code>! NA</code>. Instead use<code>is.na(x)</code> or
+<code>!is.na(x)</code>.</p>
+<pre class="r"><code>human_woNA = starwars %&gt;% filter(species==&quot;Human&quot; &amp; !is.na(mass) &amp; !is.na(height))
+human_woNA</code></pre>
+<pre><code>## # A tibble: 22 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## 10 Wedge A…    170    77 brown      fair       hazel           21   male  mascu…
+## # … with 12 more rows, and 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;,
+## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
 </div>
+<div id="a-convenient-function-to-get-rid-of-na-observations-is-using-the-drop_na-function.-you-can-use-this-on-specific-columns-or-the-whole-dataset-and-it-will-return-only-observations-that-do-not-include-na-values." class="section level3">
+<h3>A convenient function to get rid of NA observations is using the
+<code>drop_na()</code> function. You can use this on specific columns or
+the whole dataset and it will return only observations that do not
+include NA values. ¨</h3>
+<pre class="r"><code>starwars %&gt;% filter(species == &quot;Human&quot;) %&gt;% drop_na(c(mass, height)) # same as above</code></pre>
+<pre><code>## # A tibble: 22 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## 10 Wedge A…    170    77 brown      fair       hazel           21   male  mascu…
+## # … with 12 more rows, and 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;,
+## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
+<pre class="r"><code>starwars %&gt;% drop_na() # drops all observations with NA values</code></pre>
+<pre><code>## # A tibble: 29 × 14
+##    name     height  mass hair_color skin_color eye_color birth_year sex   gender
+##    &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+##  1 Luke Sk…    172    77 blond      fair       blue            19   male  mascu…
+##  2 Darth V…    202   136 none       white      yellow          41.9 male  mascu…
+##  3 Leia Or…    150    49 brown      light      brown           19   fema… femin…
+##  4 Owen La…    178   120 brown, gr… light      blue            52   male  mascu…
+##  5 Beru Wh…    165    75 brown      light      blue            47   fema… femin…
+##  6 Biggs D…    183    84 black      light      brown           24   male  mascu…
+##  7 Obi-Wan…    182    77 auburn, w… fair       blue-gray       57   male  mascu…
+##  8 Anakin …    188    84 blond      fair       blue            41.9 male  mascu…
+##  9 Chewbac…    228   112 brown      unknown    blue           200   male  mascu…
+## 10 Han Solo    180    80 brown      fair       brown           29   male  mascu…
+## # … with 19 more rows, and 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;,
+## #   films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
+<p> </p>
+</div>
+</div>
+<div id="arrange" class="section level2">
+<h2>Arrange</h2>
+<p>The arrange function arranges the row acording to the selected
+column. If you have mutiple columns the next specified column will break
+ties.</p>
+<pre class="r"><code>human_woNA %&gt;% arrange(height, mass) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 14
+##   name      height  mass hair_color skin_color eye_color birth_year sex   gender
+##   &lt;chr&gt;      &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+## 1 Leia Org…    150    49 brown      light      brown             19 fema… femin…
+## 2 Padmé Am…    165    45 brown      light      brown             46 fema… femin…
+## 3 Beru Whi…    165    75 brown      light      blue              47 fema… femin…
+## 4 Palpatine    170    75 grey       pale       yellow            82 male  mascu…
+## 5 Wedge An…    170    77 brown      fair       hazel             21 male  mascu…
+## 6 Luke Sky…    172    77 blond      fair       blue              19 male  mascu…
+## # … with 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;,
+## #   vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
+<p>Ascending order is default, use <code>desc()</code> to re-order in
+descending order:</p>
+<pre class="r"><code>human_woNA %&gt;% arrange(desc(height), desc(mass)) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 14
+##   name      height  mass hair_color skin_color eye_color birth_year sex   gender
+##   &lt;chr&gt;      &lt;int&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; 
+## 1 Darth Va…    202   136 none       white      yellow          41.9 male  mascu…
+## 2 Qui-Gon …    193    89 brown      fair       blue            92   male  mascu…
+## 3 Dooku        193    80 white      fair       brown          102   male  mascu…
+## 4 Anakin S…    188    84 blond      fair       blue            41.9 male  mascu…
+## 5 Mace Win…    188    84 none       dark       brown           72   male  mascu…
+## 6 Raymus A…    188    79 brown      light      brown           NA   male  mascu…
+## # … with 5 more variables: homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;,
+## #   vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
+<p>Na values are listed at the end.</p>
+<p> </p>
+</div>
+<div id="select" class="section level2">
+<h2>Select</h2>
+<p>Usually we have more variables in our datasheets than we might want.
+To reduce and zoom into the variables of interest it might help to
+decrease the dataset. This can be done by using the <em>select()</em>
+function.</p>
+<pre class="r"><code># select by name
+human_woNA %&gt;% select(name, height, mass) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   name               height  mass
+##   &lt;chr&gt;               &lt;int&gt; &lt;dbl&gt;
+## 1 Luke Skywalker        172    77
+## 2 Darth Vader           202   136
+## 3 Leia Organa           150    49
+## 4 Owen Lars             178   120
+## 5 Beru Whitesun lars    165    75
+## 6 Biggs Darklighter     183    84</code></pre>
+<pre class="r"><code># select all columns between two:
+human_woNA %&gt;% select(name:mass) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   name               height  mass
+##   &lt;chr&gt;               &lt;int&gt; &lt;dbl&gt;
+## 1 Luke Skywalker        172    77
+## 2 Darth Vader           202   136
+## 3 Leia Organa           150    49
+## 4 Owen Lars             178   120
+## 5 Beru Whitesun lars    165    75
+## 6 Biggs Darklighter     183    84</code></pre>
+<pre class="r"><code># select all except hair_color to starships
+height_mass = human_woNA %&gt;% select(-(hair_color:starships)) 
+height_mass %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   name               height  mass
+##   &lt;chr&gt;               &lt;int&gt; &lt;dbl&gt;
+## 1 Luke Skywalker        172    77
+## 2 Darth Vader           202   136
+## 3 Leia Organa           150    49
+## 4 Owen Lars             178   120
+## 5 Beru Whitesun lars    165    75
+## 6 Biggs Darklighter     183    84</code></pre>
+<p>There are a bunch of function that can help the selection process.
+Here are a couple of examples: Column names that:</p>
+<ul>
+<li>Starts with “of” <code>starts_with(&quot;lat&quot;)</code></li>
+<li>Ends with “log” <code>ends_with(&quot;log&quot;)</code></li>
+<li>Contains “vole” <code>contains(&quot;vole&quot;)</code></li>
+<li>Matches a regular expression <code>matches(&quot;(.)\\1&quot;)</code>. This
+one matches any variables that contain repeated characters.</li>
+<li>matches x1, x2 and x3 <code>num_range(&quot;x&quot;, 1:3)</code></li>
+</ul>
+<p>You can always get more details on all of these functions by using
+the <code>?</code> before a function. To get more detailed info on the
+select package you would run <code>?select()</code>.</p>
+</div>
+<div id="renaming-column-names-and-variable-levels" class="section level2">
+<h2>Renaming column names and variable levels</h2>
+<div id="rename" class="section level3">
+<h3>Rename</h3>
+<p>You would use the <code>rename()</code> function to rename column
+names. Note that the old name is after the equal sign.</p>
+<pre class="r"><code>height_mass %&gt;% rename(mass_kg = mass) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   name               height mass_kg
+##   &lt;chr&gt;               &lt;int&gt;   &lt;dbl&gt;
+## 1 Luke Skywalker        172      77
+## 2 Darth Vader           202     136
+## 3 Leia Organa           150      49
+## 4 Owen Lars             178     120
+## 5 Beru Whitesun lars    165      75
+## 6 Biggs Darklighter     183      84</code></pre>
+</div>
+<div id="recode" class="section level3">
+<h3>Recode</h3>
+<p>If you on the other had want to rename the levels (factor or other),
+you would use <code>recode()</code> or <code>recode_factor()</code>.</p>
+<pre class="r"><code>recode(starwars$eye_color, blue = &quot;skyblue&quot;) %&gt;% head()</code></pre>
+<pre><code>## [1] &quot;skyblue&quot; &quot;yellow&quot;  &quot;red&quot;     &quot;yellow&quot;  &quot;brown&quot;   &quot;skyblue&quot;</code></pre>
+<p>  ## Mutate If we want to create a new column based on data from an
+already existing or multiple already existing columns we can use the
+<code>mutate()</code> function. There are many things you might want to
+mutate. Maybe we want to calculate the body mass index.</p>
+<pre class="r"><code>height_mass = height_mass %&gt;% mutate(bmi = height/mass)</code></pre>
+<p>If you only want to keep the new variable you use the
+<code>transmute()</code> funciton.</p>
+<pre class="r"><code>height_mass %&gt;% transmute(bmi = height/mass) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 1
+##     bmi
+##   &lt;dbl&gt;
+## 1  2.23
+## 2  1.49
+## 3  3.06
+## 4  1.48
+## 5  2.2 
+## 6  2.18</code></pre>
+</div>
+<div id="useful-funcitons" class="section level3">
+<h3>Useful funcitons:</h3>
+<p>There are so many potential funcitons one could use that I wouldn’t
+even try listing all, but here are a few that might be useful:</p>
+<ul>
+<li>Arithmetic operations: <code>+</code>, <code>-</code>,
+<code>/</code>, <code>*</code>, <code>^</code> These operators could be
+useful in combination with aggregate functinos such as:
+<code>x/sum(x)</code> to calculate proportion of total, or
+<code>y-mean(y)</code> to calculate the difference from the mean.</li>
+<li>Modular arithmetic: <code>%/%</code> (integer division) and
+<code>%%</code> (remainder), where
+<code>x == y * (x %/% y) + (x %% y)</code>. This allows you to break up
+integers into pieces, for example height into meters and
+centimeters:</li>
+</ul>
+<pre class="r"><code>height_mass %&gt;% transmute(height, 
+                          meters = height %/% 100,
+                          centimeters = height %% 100) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   height meters centimeters
+##    &lt;int&gt;  &lt;dbl&gt;       &lt;dbl&gt;
+## 1    172      1          72
+## 2    202      2           2
+## 3    150      1          50
+## 4    178      1          78
+## 5    165      1          65
+## 6    183      1          83</code></pre>
+<ul>
+<li>Transformations such as: <code>log()</code>,<code>log10()</code>,
+<code>sqrt</code>, <code>cube()</code></li>
+<li>Logical comparisons: <code>&lt;</code>, <code>==</code>, etc.</li>
+<li>Ranking using: <code>min_rank()</code>, <code>row_number()</code>,
+<code>dense_rank()</code>, <code>percent_rank()</code>,
+<code>cume_rank()</code>, <code>ntile()</code>.</li>
+</ul>
+<p> </p>
+</div>
+</div>
+<div id="summarise" class="section level2">
+<h2>Summarise</h2>
+<p>This might not be the most important in a data manipulation workshop.
+But for exploring your data and making some descriptive statistics and
+summaries, using the <code>summarise()</code> function becomes really
+useful.</p>
+<pre class="r"><code>height_mass %&gt;% summarise(mean_height = mean(height, na.rm = T)) # the na.rm = T removes NA&#39;s from your calculation of the mean, otherwise you will only get an NA</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   mean_height
+##         &lt;dbl&gt;
+## 1        180.</code></pre>
+<pre class="r"><code>starwars %&gt;% summarise(mean_height = mean(height)) # I&#39;m using the entire starwars dataset because I removed NA&#39;s already from the hight_mass dataset. </code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   mean_height
+##         &lt;dbl&gt;
+## 1          NA</code></pre>
+<div id="group_by" class="section level3">
+<h3>Group_by</h3>
+<p>The <code>summarise()</code> function works very neatly together with
+the <code>group_by()</code> function, this lets you summarize by group.
+You can use <code>group_by()</code> in many of the other functions we
+talked about already as well. Say for example that we want to calculate
+the mean mass per species:</p>
+<pre class="r"><code>starwars %&gt;% group_by(species) %&gt;% summarise(mean_mass = mean(mass, rm.na=T)) %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   species  mean_mass
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 Aleena          15
+## 2 Besalisk       102
+## 3 Cerean          82
+## 4 Chagrian        NA
+## 5 Clawdite        55
+## 6 Droid           NA</code></pre>
+<p>Or by species and site they come from:</p>
+<pre class="r"><code>starwars %&gt;% group_by(species, homeworld) %&gt;% summarise(mean_mass = mean(mass, rm.na=T)) %&gt;% head()</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;species&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 6 × 3
+## # Groups:   species [6]
+##   species  homeworld   mean_mass
+##   &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;
+## 1 Aleena   Aleen Minor        15
+## 2 Besalisk Ojom              102
+## 3 Cerean   Cerea              82
+## 4 Chagrian Champala           NA
+## 5 Clawdite Zolan              55
+## 6 Droid    Naboo              32</code></pre>
+<p>A funciton I usually find helpful to inspect and explore my data is
+to combine the <code>summarise()</code>, <code>group_by()</code>, and
+<code>n()</code> functions. By using these you can quickly count for
+example number of females and males per site. Or how many times an
+individual has been trapped. The list goes on.</p>
+<pre class="r"><code>starwars %&gt;% 
+  group_by(species) %&gt;% 
+  summarise(count = n(),
+            mean_mass = mean(mass, na.rm = T)) %&gt;% 
+  filter(count &gt; 2 &amp; mean_mass &gt; 50)</code></pre>
+<pre><code>## # A tibble: 3 × 3
+##   species count mean_mass
+##   &lt;chr&gt;   &lt;int&gt;     &lt;dbl&gt;
+## 1 Droid       6      69.8
+## 2 Gungan      3      74  
+## 3 Human      35      82.8</code></pre>
+<p>You can of course run each of these functions
+(<code>group_by()</code>, <code>summarise()</code>,
+<code>filter()</code>) separately. But piping them together just makes
+it neater and removes steps where you might have to create new data
+frames etc…</p>
+<p>You can also use other summarizing function like
+<code>summarise_all()</code> (summarises all varaiables with the defined
+function), <code>summarise_each()</code>, and
+<code>summarise_at()</code>. These seem to however have been superseded
+by <code>across()</code> which allows for a transformation to be applied
+to multiple columns and is used within functions like
+<code>summarise()</code> and <code>mutate()</code>.</p>
+<p>Sometimes it can be a nice idea to include a count (<code>n()</code>)
+or a count of non-missing data (<code>sum(!is.na(x))</code>) to check if
+you are making conclusions on very few data points. <em>we actually
+already did that in the chunk above but here is an example…</em></p>
+<pre class="r"><code>starwars %&gt;% group_by(species) %&gt;% summarise(mean_mass = mean(mass, na.rm = T),
+                                               n = sum(!is.na(mass)))</code></pre>
+<pre><code>## # A tibble: 38 × 3
+##    species   mean_mass     n
+##    &lt;chr&gt;         &lt;dbl&gt; &lt;int&gt;
+##  1 Aleena         15       1
+##  2 Besalisk      102       1
+##  3 Cerean         82       1
+##  4 Chagrian      NaN       0
+##  5 Clawdite       55       1
+##  6 Droid          69.8     4
+##  7 Dug            40       1
+##  8 Ewok           20       1
+##  9 Geonosian      80       1
+## 10 Gungan         74       2
+## # … with 28 more rows</code></pre>
+</div>
+<div id="useful-summarising-function" class="section level3">
+<h3>Useful summarising function:</h3>
+<ul>
+<li>Measures of location: <code>mean()</code>,
+<code>median()</code></li>
+<li>Measures of spread: <code>sd(x)</code> (standard deviation),
+<code>IQR(x)</code> (interquartile range), <code>mad(x)</code> (median
+absolute deviation).</li>
+<li>Measures of rank: <code>min(x)</code>, <code>max(x)</code>,
+<code>quantile(x, 0.25)</code></li>
+<li>Measures of position: <code>first()</code>, <code>last()</code>,
+<code>nth(x, 2)</code>,</li>
+<li>Counts: <code>n()</code> returns the size of the group,
+<code>sum(!is.na(x))</code> returns the numer of non-missing values and
+to count number of distinct (unique) values you can use
+<code>n_distinct(x)</code> (this is the same as writing
+<code>length(unique(x))</code>,</li>
+</ul>
+<pre class="r"><code>starwars %&gt;% 
+  group_by(species) %&gt;% 
+  summarise(pop_size = n_distinct(name)) %&gt;% 
+  arrange(desc(pop_size)) %&gt;% 
+  head() # to get the end you can of course write tail()</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   species  pop_size
+##   &lt;chr&gt;       &lt;int&gt;
+## 1 Human          35
+## 2 Droid           6
+## 3 &lt;NA&gt;            4
+## 4 Gungan          3
+## 5 Kaminoan        2
+## 6 Mirialan        2</code></pre>
+<ul>
+<li>Counts and proportion sof logical values:
+<code>sum(x &gt; 10)</code>, <code>mean(y == 0)</code>   There are so
+many ways that you can explore and manipulate you data by combining
+these functions in different way. This is just a quick glimps into what
+one can do and if you want to do more or if there are other specific
+things you need we can look at that together but there are also so many
+resurces online to find (<em>see list of resources at the end</em>)</li>
+</ul>
+<p> </p>
+</div>
+</div>
+<div id="wide-to-long-format" class="section level2">
+<h2>Wide to long format</h2>
+<p>Now something we often run into is the structure of the data. Often
+times we might have a data in a wide format and want to change it to a
+long format or the opposit. Tidyverse has the two function
+<code>pivot_longer()</code> and <code>pivot_wider()</code>. <em>I don’t
+think the starwars package is very well suited to explore this so we
+will create a quick eample instead</em>. These would be used like
+this:</p>
+<pre class="r"><code>ind = c(rep(&quot;A&quot;, 3), rep(&quot;B&quot;, 2), rep(&quot;C&quot;, 3))
+test_occasion = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;1&quot;, &quot;2&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;)
+value = c(5, 4, 3, 8, 6, 7, 2, 1)
+df = tibble(ind, test_occasion, value)</code></pre>
+<p>Now this is in a long format which is acutally usually how we want
+the data be be structured for most of our analysis we do. But we will
+convert it to wide and then back to long format so that you know how to
+do both.</p>
+<pre class="r"><code>df = df %&gt;% pivot_wider(names_from = test_occasion, values_from = value)
+df</code></pre>
+<pre><code>## # A tibble: 3 × 4
+##   ind     `1`   `2`   `3`
+##   &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 A         5     4     3
+## 2 B         8     6    NA
+## 3 C         7     2     1</code></pre>
+<pre class="r"><code>df = df %&gt;% pivot_longer(cols = c(`1`, `2`, `3`),
+                    names_to = &#39;test_occasion&#39;,
+                    values_to = &#39;values&#39;)
+df</code></pre>
+<pre><code>## # A tibble: 9 × 3
+##   ind   test_occasion values
+##   &lt;chr&gt; &lt;chr&gt;          &lt;dbl&gt;
+## 1 A     1                  5
+## 2 A     2                  4
+## 3 A     3                  3
+## 4 B     1                  8
+## 5 B     2                  6
+## 6 B     3                 NA
+## 7 C     1                  7
+## 8 C     2                  2
+## 9 C     3                  1</code></pre>
+<p>Of course if you have more variables this can get a bit messier.
+Check out the help <code>?pivot_longer()</code> for more help. <em>we
+can go through more example of this if that’s something you wish to
+do</em>.</p>
+<p> </p>
+</div>
+<div id="joining-datasets" class="section level2">
+<h2>Joining datasets</h2>
+<p>A quick and last thign that I think is important for us to do is to
+merge different data sets. This is something we often do and where we
+have a common variable in both data sets that makes it possible to merge
+(e.g. vole ID). For this the different types of <code>join()</code>
+functions are excellent. *These are an alternative to base R
+<code>merge()</code> function.</p>
+<ul>
+<li><code>inner_join()</code> (A &amp; B) = keeps observations from
+<code>x</code> that have a matching key in <code>y</code>.</li>
+<li><code>left_join()</code> (A) = keeps all observations in
+<code>x</code>.</li>
+<li><code>right_join()</code> (B) = keeps all observations in
+<code>y</code>.</li>
+<li><code>full_join()</code> (A|B) = keeps all observations in both
+<code>x</code> and <code>y</code>. We can use this to merge the new data
+frame we created with the human BMI values into the original starwars
+data frame.</li>
+</ul>
+<pre class="r"><code>starwars = starwars %&gt;% left_join(height_mass, by = c(&quot;name&quot;, &quot;height&quot;, &quot;mass&quot;))</code></pre>
+<p>In this case we don’t have to specify the key because R can tell
+which variables are the same in both documents and should determine how
+the data frames are to be combined. If however you have multiple keys or
+variables that have the same name but are not showing the same
+information you should specify the key by using the <code>by = x</code>
+as seen in the code above.</p>
+<p>That’s it for now. There are probably a million more things we could
+do but I think this is probably a nice start and a good foundation to
+base your data manipulations on. Again, if you ever have any quiestions
+about these function or the details of them, use the R help
+<code>?</code> function. And google google google! :D EIther way here
+are a few pages of resources that have great info and advice on how to
+work with tidyverse and manipulate your data:</p>
+</div>
+<div id="list-of-a-few-resources" class="section level2">
+<h2>List of a few resources</h2>
+<p><a href="https://tidyverse.tidyverse.org/">tidyverse
+package</a><br />
+The grammar of tidyverse: <a href="https://dplyr.tidyverse.org/">dplyr</a><br />
+Learn tidyverse better: <a href="https://r4ds.had.co.nz/index.html">R
+for Data Science</a><br />
+<a href="https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf">R
+data wrangling cheat sheet</a></p>
 </div>
 </div>
 
