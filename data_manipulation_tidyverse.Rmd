@@ -3,28 +3,130 @@ title: "Data manipulation with Tidyverse"
 author: "Filippa Erixon"
 date: "2023-03-29"
 output: html_document
+knit: (function(input_file, encoding) {
+    out_dir <- 'docs';
+    rmarkdown::render(input_file,
+      encoding=encoding,
+      output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Introduction & outline
+In this tutorial we will be going through and learning some basic data manipulation using tidyverse, a commonly used language that is not the base r coding. Base r can be useful for many things but a lot has happened since R was created and the base r language is not always the most efficient useful coding. Therefore, a lot f people have moved on to other languages which you can use by installing packages such as tidyverse. Tidyverse is probably among the most used nowdays. 
 
-## R Markdown
+In this intro we will cover basic functions:\
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+- filter()
+- select()
+- summarise()
+- arrange()
+- mutate()
+- group_by()
+- join()
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Before we start with data manipulation, lets clean our environment and load our library. If you have not already installed these packages go ahead and do that first using the install.packages() function. 
+```{r set env and library, message=FALSE}
+rm(list=ls()) # this cleans your global environment
+library(tidyverse)
+library(ggplot2)
+```
+Note that tidyverse overrides some of the function in base R language and to get these function you would have to specify that you want the base R version by specifying base:: in front of the function. '
 
-```{r cars}
-summary(cars)
+Now let us import a data set for us to use throughout this tutorial.
+```{r}
+data(starwars)
+```
+Before we go on I want to point out that when writing in tidyverse, often so called *tibbles* are used, instead of *data.frames*. These are essentially the same as *data.frames* but tweaked a bit to work better in tidyverse and in this workshop we will mainly work with *tibbles*. Having said that, I normally use data.frames in my code/analyses because sometimes *tibbles* are not accepted by certain models and when I, on the offhand, use base R language it might be easier to use *data.frames*. 
+
+**Explanation to the code**
+Tidyverse uses so called *piping*. This often looks something like this:
+
+> `df %>% function()`
+
+Here we first write the data frame we are using and then pipe it to the function we want to apply on it.  
+&nbsp; 
+
+**Lets start with some data exploration and manipulation!**
+
+Let's start by exploring the data a bit. 
+
+## Classes  
+In stats we usually talk about:
+
+1. Categorical
+  * Nominal
+  * Ordinal
+2. Numeric
+  * Interval
+  * Ratio
+
+Classes in R: 
+
+* character (factor)
+* numeric
+* integer
+* logical 
+* complex
+
+First step when loading your data into R is always to inspect your data and reclassify variables if needed. To inspect you can:
+```{r}
+str(starwars[,1:11])
+```
+Note that I defined that I only want the first 11 columns. I did this only for the purpose of limiting the length of the output and not make this document unnecessarily long. Normally you would just write ````str(starwars)````
+Or for tibbles:
+```{r}
+starwars
 ```
 
-## Including Plots
+If you need to convert use either of these functions:
 
-You can also embed plots, for example:
+* ````as.character()````
+* ````as.factor()````
+* ````as.integer()````
+* ````as.numeric()````
+For dates I would recommend using the ````lubridate```` package and depending on what date format you can use e.g.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+* ````ymd()````, ````dmy()````
+
+Other date conversion functions are:
+
+* ````as.POSIXct()````  
+*  ````as.Date()````  
+
+## Filter
+Sub-setting the data. Say that we are only interested in humans for our analysis. Then we can subset the data using the filter() function. 
+```{r subsetting data}
+starwars %>% filter(species == "Human") %>% head()
 ```
+You can also call the data frame to use within the function. Like this:
+```{r}
+filter(starwars, species=="Human") %>% head()
+```
+**BUT!** If you want to do multiple operations in one line of code it becomes easier to pipe from the data frame needed. 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+This will only return the output in your console. If you want to save you would have to assign it to a new (or the old) data frame.
+```{r}
+humans = starwars %>% filter(species == "Human")
+```
+We assign the filtered data to a new data frame *humans* using the equal sign (*=*) but the old school assigment operator also work (<-).  
+&nbsp; 
+
+### Comparison operators
+For filtering and selecting the observations you need it is necessary to know the differnet types of operators: 
+
+- ````>````,  
+- ````>=````,  
+- ````<````,  
+- ````<=````,  
+- ````!=```` (not equal),  
+- ````==```` (equal).    
+
+### Logical operators
+Filtering functions can also be combined with logical operators. This is often done when several levels of a (or several) factor variable(s) are wanted. The Boolean operators used are:
+
+- ````&```` is "and",
+- ````|```` is "or",
+- ````!```` is "not"  
+![image of boolean operators](boolean_operator.png)
